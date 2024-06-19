@@ -1,16 +1,14 @@
 package main
 
 import (
-	"crypto/tls"
 	"io"
 	"net/http"
 	"os"
 )
 
-var transport = &http.Transport{TLSClientConfig: &tls.Config{MinVersion: tls.VersionTLS13}, ForceAttemptHTTP2: false}
-var client = &http.Client{Transport: transport}
+func (app *App) GetMediaData(file *os.File, uri string) error {
+	client := app.Client
 
-func getMediaData(file *os.File, uri string) error {
 	req, err := http.NewRequest("GET", uri, nil)
 	if err != nil {
 		return err

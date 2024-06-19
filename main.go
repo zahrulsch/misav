@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -11,9 +12,12 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
-func loadTarget() []string {
-	path := "target.txt"
-	f, err := os.ReadFile(path)
+func loadTarget(target string) []string {
+	if target == "" {
+		target = "target.txt"
+	}
+
+	f, err := os.ReadFile(target)
 
 	if err != nil {
 		panic(err)
@@ -23,9 +27,10 @@ func loadTarget() []string {
 	lines := strings.Split(string(f), "\n")
 
 	for _, line := range lines {
+		line = strings.ReplaceAll(line, "\r", "")
+		line = strings.ReplaceAll(line, "\t", "")
+
 		if line != "" {
-			line = strings.ReplaceAll(line, "\r", "")
-			line = strings.ReplaceAll(line, "\t", "")
 			targets = append(targets, line)
 		}
 	}
@@ -34,27 +39,30 @@ func loadTarget() []string {
 }
 
 func main() {
-	tars := loadTarget()
+	app := NewApp()
+	tars := loadTarget(app.Config.TargetFile)
+
+	log.Printf("%s", app.Config.JSONString())
 
 	for _, target := range tars {
-		id, err := getInitialPage(target)
+		id, err := app.GetInitialPage(target)
 
 		if err != nil {
 			panic(err)
 		}
 
-		uriMedia, res, err := getPlaylist(id)
+		uriMedia, res, err := app.GetPlaylist(id)
 		if err != nil {
 			panic(err)
 		}
 
-		medias, err := getMedia(id, res, uriMedia)
+		medias, err := app.GetMedia(id, res, uriMedia)
 		if err != nil {
 			panic(err)
 		}
 
 		var wg sync.WaitGroup
-		var maxCon = 4
+		var maxCon = app.Config.MaxConcurrentMedia
 
 		mediaC := make(chan *Media, 100)
 
@@ -90,7 +98,7 @@ func main() {
 						panic(err)
 					}
 
-					err = getMediaData(file, med.URI)
+					err = app.GetMediaData(file, med.URI)
 
 					if err != nil {
 						panic(err)
@@ -120,7 +128,13 @@ func main() {
 			return ix < jx
 		})
 
-		out, _ := filepath.Abs("video/" + id + ".mp4")
+		rootDir := "video"
+
+		if app.Config.OutDir != "" {
+			rootDir = app.Config.OutDir
+		}
+
+		out, _ := filepath.Abs(filepath.Join(rootDir, id+".mp4"))
 
 		file, err := os.OpenFile(out, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {

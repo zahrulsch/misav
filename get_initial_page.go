@@ -1,18 +1,16 @@
 package main
 
 import (
-	"crypto/tls"
 	"errors"
 	"io"
 	"net/http"
 	"regexp"
 )
 
-type VidID = string
+type VideoID = string
 
-func getInitialPage(url string) (VidID, error) {
-	transport := &http.Transport{TLSClientConfig: &tls.Config{MinVersion: tls.VersionTLS13}}
-	client := &http.Client{Transport: transport}
+func (app *App) GetInitialPage(url string) (VideoID, error) {
+	client := app.Client
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

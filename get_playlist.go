@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/tls"
 	"errors"
 	"fmt"
 	"net/http"
@@ -13,10 +12,9 @@ import (
 type URI = string
 type Res = string
 
-func getPlaylist(id string) (URI, Res, error) {
+func (app *App) GetPlaylist(id string) (URI, Res, error) {
 	uriLike := fmt.Sprintf("https://surrit.com/%v/playlist.m3u8", id)
-	transport := &http.Transport{TLSClientConfig: &tls.Config{MinVersion: tls.VersionTLS13}}
-	client := &http.Client{Transport: transport}
+	client := app.Client
 
 	req, err := http.NewRequest("GET", uriLike, nil)
 	if err != nil {

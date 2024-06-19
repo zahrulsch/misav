@@ -1,0 +1,8 @@
+# output directory
+out_dir = "C:\\Users\\mantr\\OneDrive\\Documents\\Door"
+
+# max download connections
+max_concurrent_media = 4
+
+# file contains urls separate by new line character
+target_file = "target.txt"

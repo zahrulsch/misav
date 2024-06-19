@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/tls"
 	"errors"
 	"fmt"
 	"net/http"
@@ -14,11 +13,10 @@ type Media struct {
 	URI string
 }
 
-func getMedia(id, resolution, uri string) ([]*Media, error) {
-	transport := &http.Transport{TLSClientConfig: &tls.Config{MaxVersion: tls.VersionTLS11, MinVersion: tls.VersionTLS11}, ForceAttemptHTTP2: false}
-	client := &http.Client{Transport: transport}
-
+func (app *App) GetMedia(id, resolution, uri string) ([]*Media, error) {
+	client := app.Client
 	req, err := http.NewRequest("GET", uri, nil)
+
 	if err != nil {
 		return nil, err
 	}
